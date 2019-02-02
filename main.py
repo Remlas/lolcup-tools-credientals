@@ -9,6 +9,7 @@ import sys
 import wmi
 import winreg
 import socket
+import json
 
 from colorama import init as coloramainit
 from colorama import Fore, Back, Style
@@ -72,7 +73,7 @@ print("Password: "+ Credentials.Pass)
 print("Your Computer Name is: " + socket.gethostname())    
 print("Your Computer IP Address is: " + socket.gethostbyname(socket.gethostname()))    
 
-
+Credentialspack = {"Port": Credentials.Port, "Password": Credentials.Pass}
 
 # create a socket object
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -93,6 +94,7 @@ clientsocket,addr = serversocket.accept()
 
 print("Credientals send to %s" % str(addr))
 
-msg = Credentials.Port + "\r\n" + Credentials.Pass
-clientsocket.send(msg.encode('ascii'))
+msg = json.dumps(Credentialspack)
+
+clientsocket.send(msg.encode('utf-8'))
 clientsocket.close()
