@@ -66,8 +66,33 @@ if (Credentials.Port is None) or (Credentials.Pass is None):
     print(Fore.RED + "Cannot find informations about connection to League of Legends Launcher. Exiting..." + Fore.RESET)
     sys.exit()
 
-print(Credentials.Port)
-print(Credentials.Pass)
+print("Port: " + Credentials.Port)
+print("Password: "+ Credentials.Pass)
    
 print("Your Computer Name is: " + socket.gethostname())    
 print("Your Computer IP Address is: " + socket.gethostbyname(socket.gethostname()))    
+
+
+
+# create a socket object
+serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+
+# get local machine name
+host = "0.0.0.0"
+port = 25565                                          
+
+# bind to the port
+serversocket.bind((host, port))                                  
+
+# queue up to 5 requests
+serversocket.listen(5)                                           
+
+
+# establish a connection
+clientsocket,addr = serversocket.accept()      
+
+print("Credientals send to %s" % str(addr))
+
+msg = Credentials.Port + "\r\n" + Credentials.Pass
+clientsocket.send(msg.encode('ascii'))
+clientsocket.close()
