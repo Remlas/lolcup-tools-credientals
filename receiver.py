@@ -14,8 +14,7 @@ s.connect((host, port))
 
 # Receive no more than 1024 bytes
 
-msg = s.recv(1024)                                     
-print (msg.decode('utf-8'))
+msg = s.recv(1024)
 
 s.close()
 
