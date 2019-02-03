@@ -1,10 +1,15 @@
+### DEPENCIES TO INSTALL ###
 ##pip3 install urllib3 colorama requests wmi pywin32 
 
-#import urllib3
-#urllib3.disable_warnings()
+### CONFIG ###
+host = "0.0.0.0" #IP to bind UDP Server
+port = 25565  #Port for UDP Sever
+loldir_configured = None #Directory of League of Legends folder if autodetecion is not working
 
-#import requests
-#import json
+import urllib3
+urllib3.disable_warnings()
+
+import requests
 import sys
 import wmi
 import winreg
@@ -21,11 +26,11 @@ Style: DIM, NORMAL, BRIGHT, RESET_ALL
 """
 
 class LoLDirectory(object):
-  LolDir = None #It's defined - less bugs
+  LolDir = loldir_configured #It's defined - less bugs
   try: #First check Windows Registry
     key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\WOW6432Node\Riot Games, Inc\League of Legends")
     LolDir = winreg.QueryValueEx(key, "Location")[0] #We need only first value from array
-  except:
+  except: #Next try to find running process
     print("League of Legends not found in registry! Trying to find info in process")
     try:
       Found = False
@@ -70,24 +75,47 @@ if (Credentials.Port is None) or (Credentials.Pass is None):
 print("Port: " + Credentials.Port)
 print("Password: "+ Credentials.Pass)
    
-print("Your Computer Name is: " + socket.gethostname())    
-print("Your Computer IP Address is: " + socket.gethostbyname(socket.gethostname()))    
+print("\nYour Computer Name is: " + socket.gethostname())    
+print("Your Computer IP Address is: " + socket.gethostbyname(socket.gethostname()) + "\n")    
 
+print("Checking connection with League Client")
+
+headers = {
+    'Accept' : 'application/json'
+}
+
+def rqget(url):
+    url='https://127.0.0.1:'+Credentials.Port+url
+    return requests.get(url, headers=headers, auth=('riot', Credentials.Pass), verify=False)
+
+try:
+  status = json.loads(rqget('/process-control/v1/process').text)['status']
+  if status == 'Running':
+    status = Fore.GREEN + status + Fore.RESET
+except:
+  status = Fore.RED + 'Cannot connect' + Fore.YELLOW + '\nSend credientals may be invalid' + Fore.RESET
+
+print("Status: " + status + "...")
+print("Starting UDP Server with Credentials")
 Credentialspack = {"Port": Credentials.Port, "Password": Credentials.Pass}
 
-# create a socket object
-serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-
-# get local machine name
-host = "0.0.0.0"
-port = 25565                                          
+# Create object of socket
+serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                                          
 
 # bind to the port
-serversocket.bind((host, port))                                  
+try:
+  serversocket.bind((host, port))
+except OSError as e:
+  if e.winerror == 10048:
+    print(Fore.RED + "Cannot start UDP server. Maybe application is already running or port " + str(port) + " is already occupied?" + Fore.RESET + "\nExiting")
+  else:
+    print("error number: " + e.errno)
+  sys.exit()
 
 # queue up to 5 requests
 serversocket.listen(5)                                           
 
+print("Awaiting for connection on " + host + "...")
 
 # establish a connection
 clientsocket,addr = serversocket.accept()      
@@ -98,3 +126,6 @@ msg = json.dumps(Credentialspack)
 
 clientsocket.send(msg.encode('utf-8'))
 clientsocket.close()
+
+print("Job finished, press any key to exit...")
+input()
