@@ -69,7 +69,8 @@ class Credentials(object):
 
 
 if (Credentials.Port is None) or (Credentials.Pass is None):
-    print(Fore.RED + "Cannot find informations about connection to League of Legends Launcher. Exiting..." + Fore.RESET)
+    print(Fore.RED + "Cannot find informations about connection to League of Legends Launcher. Press Return to exit..." + Fore.RESET)
+    input()
     sys.exit()
 
 print("Port: " + Credentials.Port)
@@ -127,5 +128,5 @@ msg = json.dumps(Credentialspack)
 clientsocket.send(msg.encode('utf-8'))
 clientsocket.close()
 
-print("Job finished, press any key to exit...")
+print("Job finished, press Return to exit...")
 input()
